@@ -25,3 +25,9 @@ export interface CreateUsernameResponse {
   success?: boolean;
   error?: string;
 }
+
+export interface SearchUser {
+  id: string;
+  username: string | null;
+  image: string | null;
+}

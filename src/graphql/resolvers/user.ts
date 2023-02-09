@@ -1,8 +1,50 @@
-import { CreateUsernameResponse, GraphQLContext } from "../../util/types";
+import {
+  CreateUsernameResponse,
+  GraphQLContext,
+  SearchUser,
+} from "../../util/types";
+
+import { ApolloError } from "apollo-server-core";
 
 const resolvers = {
   Query: {
-    searchUsers: () => {},
+    searchUsers: async (
+      _: any,
+      args: { username: string },
+      context: GraphQLContext
+    ): Promise<SearchUser[]> => {
+      const { username: searchedUsername } = args;
+      const { session, prisma } = context;
+
+      if (!session?.user) {
+        throw new ApolloError("Not Authorized");
+      }
+
+      const {
+        user: { username: myUsername },
+      } = session;
+
+      try {
+        const users = await prisma.user.findMany({
+          where: {
+            username: {
+              contains: searchedUsername,
+              not: myUsername,
+              mode: "insensitive",
+            },
+          },
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        });
+        return users;
+      } catch (error: any) {
+        console.log("Searched User Error", error?.message);
+        throw new ApolloError(error?.message);
+      }
+    },
   },
   Mutation: {
     createUsername: async (
@@ -14,9 +56,7 @@ const resolvers = {
       const { session, prisma } = context;
 
       if (!session?.user) {
-        return {
-          error: "Not Authorized",
-        };
+        throw new ApolloError("Not Authorized");
       }
 
       const { id: userId } = session.user;
