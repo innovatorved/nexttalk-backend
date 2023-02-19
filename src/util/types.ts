@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-import { ISODateString } from "next-auth";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { conversationPopulated } from "../graphql/resolvers/conversation";
 
 export interface GraphQLContext {
   session: Session | null;
@@ -7,7 +7,6 @@ export interface GraphQLContext {
 }
 
 // Users
-
 export interface Session {
   user?: User;
   expires: Date;
@@ -31,3 +30,7 @@ export interface SearchUser {
   username: string | null;
   image: string | null;
 }
+
+export type ConversationPopulated = Prisma.ConversationGetPayload<{
+  include: typeof conversationPopulated;
+}>;

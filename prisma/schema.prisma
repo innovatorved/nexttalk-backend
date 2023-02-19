@@ -61,7 +61,7 @@ model Conversation {
     id              String                    @id @default(auto()) @map("_id") @db.ObjectId
     messages        Message[]
     participants    ConversationParticipant[]
-    latestMessageId String?
+    latestMessageId String?                   @default("000000000000")
     createdAt       DateTime                  @default(now())
     updatedAt       DateTime                  @updatedAt
 }
@@ -84,7 +84,7 @@ model Message {
     senderId       String       @db.ObjectId
     sender         User         @relation(fields: [senderId], references: [id])
     body           String
-    isLatestIn     Boolean?
+    isLatestIn     String?
     createdAt      DateTime     @default(now())
     updatedAt      DateTime     @updatedAt
 }
