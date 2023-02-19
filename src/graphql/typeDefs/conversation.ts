@@ -20,7 +20,7 @@ const typeDefs = gql`
   type Conversation {
     id: String
     participants: [Participant]
-    latestMessageId: String!
+    latestMessage: Message
     createdAt: Date
     updatedAt: Date
   }

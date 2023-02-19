@@ -96,6 +96,16 @@ export const conversationPopulated =
     participants: {
       include: participantPopulated,
     },
+    latestMessage: {
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    },
   });
 
 export default resolvers;
