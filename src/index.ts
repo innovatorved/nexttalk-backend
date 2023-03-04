@@ -1,29 +1,29 @@
 require("dotenv").config();
 
-import { ApolloServer } from "apollo-server-express";
-import {
-  ApolloServerPluginDrainHttpServer,
-  ApolloServerPluginLandingPageLocalDefault,
-} from "apollo-server-core";
-import { makeExecutableSchema } from "@graphql-tools/schema";
+import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@apollo/server/express4";
 
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { PubSub } from "graphql-subscriptions";
+import { useServer } from "graphql-ws/lib/use/ws";
 
 import express from "express";
 import http from "http";
+import { WebSocketServer } from "ws";
 
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 
-import { WebSocketServer } from "ws";
-import { useServer } from "graphql-ws/lib/use/ws";
-
-import { CLIENT_URL } from "./constants";
-import { GraphQLContext, Session, SubscriptionContext } from "./util/types";
-
 import { PrismaClient } from "@prisma/client";
 
+import { GraphQLContext, Session, SubscriptionContext } from "./util/types";
+
 import cookieParser from "cookie-parser";
+import cors from "cors";
+import { json } from "body-parser";
+
+import { CLIENT_URL, PORT } from "./constants";
 
 async function main() {
   const app = express();
@@ -44,44 +44,35 @@ async function main() {
   const prisma = new PrismaClient();
   const pubsub = new PubSub();
 
+  const getSubscriptionContext = async (
+    ctx: SubscriptionContext
+  ): Promise<GraphQLContext> => {
+    ctx;
+    // ctx is the graphql-ws Context where connectionParams live
+    if (ctx.connectionParams && ctx.connectionParams.session) {
+      const { session } = ctx.connectionParams;
+      return { session, prisma, pubsub };
+    }
+    // Otherwise let our resolvers know we don't have a current user
+    return { session: null, prisma, pubsub };
+  };
+
+  // Save the returned server's info so we can shutdown this server later
   const serverCleanup = useServer(
     {
       schema,
-      context: async (ctx: SubscriptionContext): Promise<GraphQLContext> => {
-        if (ctx.connectionParams && ctx.connectionParams.session) {
-          const { session } = ctx.connectionParams;
-          return { session, prisma, pubsub };
-        }
-        return { session: null, prisma, pubsub };
+      context: (ctx: SubscriptionContext) => {
+        // This will be run every time the client sends a subscription request
+        // Returning an object will add that information to our
+        // GraphQL context, which all of our resolvers have access to.
+        return getSubscriptionContext(ctx);
       },
     },
     wsServer
   );
 
-  const corsOption = {
-    origin: CLIENT_URL,
-    credentials: true,
-  };
-
   const server = new ApolloServer({
     schema,
-    context: async ({ req, res }): Promise<GraphQLContext> => {
-      if (!req.cookies["next-auth.session-token"])
-        return { session: null, prisma, pubsub };
-      const sessionToken = req.cookies["next-auth.session-token"];
-
-      const session = (await prisma.session.findUnique({
-        where: {
-          sessionToken,
-        },
-        select: {
-          user: true,
-          expires: true,
-        },
-      })) as Session;
-
-      return { session, prisma, pubsub };
-    },
     csrfPrevention: true,
     cache: "bounded",
     plugins: [
@@ -98,17 +89,44 @@ async function main() {
           };
         },
       },
-
-      ApolloServerPluginLandingPageLocalDefault({ embed: true }),
     ],
   });
 
   await server.start();
-  server.applyMiddleware({ app, cors: corsOption });
-  await new Promise<void>((resolve) =>
-    httpServer.listen({ port: 5000 }, resolve)
+  const corsOptions = {
+    origin: CLIENT_URL,
+    credentials: true,
+  };
+
+  app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(corsOptions),
+    json(),
+    expressMiddleware(server, {
+      context: async ({ req }): Promise<GraphQLContext> => {
+        if (!req.cookies["next-auth.session-token"])
+          return { session: null, prisma, pubsub };
+        const sessionToken = req.cookies["next-auth.session-token"];
+        const session = (await prisma.session.findUnique({
+          where: {
+            sessionToken,
+          },
+          select: {
+            user: true,
+            expires: true,
+          },
+        })) as Session;
+
+        return { session: session as Session, prisma, pubsub };
+      },
+    })
   );
-  console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`);
+
+  // Now that our HTTP server is fully set up, we can listen to it.
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: PORT }, resolve)
+  );
+  console.log(`Server is now running on http://localhost:${PORT}/graphql`);
 }
 
 main().catch((err) => console.log(err));

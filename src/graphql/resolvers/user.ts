@@ -4,7 +4,7 @@ import {
   SearchUser,
 } from "../../util/types";
 
-import { ApolloError } from "apollo-server-core";
+import { GraphQLError } from "graphql";
 
 const resolvers = {
   Query: {
@@ -17,7 +17,7 @@ const resolvers = {
       const { session, prisma } = context;
 
       if (!session?.user) {
-        throw new ApolloError("Not Authorized");
+        throw new GraphQLError("Not Authorized");
       }
 
       const {
@@ -42,7 +42,7 @@ const resolvers = {
         return users;
       } catch (error: any) {
         console.log("Searched User Error", error?.message);
-        throw new ApolloError(error?.message);
+        throw new GraphQLError(error?.message);
       }
     },
   },
@@ -56,7 +56,7 @@ const resolvers = {
       const { session, prisma } = context;
 
       if (!session?.user) {
-        throw new ApolloError("Not Authorized");
+        throw new GraphQLError("Not Authorized");
       }
 
       const { id: userId } = session.user;
