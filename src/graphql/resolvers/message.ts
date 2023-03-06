@@ -145,7 +145,7 @@ const resolver = {
           },
         });
 
-        pubsub.publish("MESSAGE_SEND", { messageSent: newMessage });
+        pubsub.publish("MESSAGE_SEND", { messageSend: newMessage });
         // pubsub.publish("CONVERSATION_UPDATED", {
         //   conversationUpdated: {
         //     conversation,
