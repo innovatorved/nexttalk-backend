@@ -1,4 +1,8 @@
-import { ConversationPopulated, GraphQLContext } from "../../util/types";
+import {
+  ConversationPopulated,
+  GraphQLContext,
+  MessagePopulated,
+} from "../../util/types";
 import { GraphQLError } from "graphql";
 import { Prisma } from "@prisma/client";
 import { withFilter } from "graphql-subscriptions";
@@ -58,22 +62,50 @@ const resolvers = {
       } = session;
 
       try {
-        const conversation = await prisma.conversation.create({
-          data: {
-            participants: {
-              createMany: {
-                data: participantsIds.map((id) => ({
-                  userId: id,
-                  hasSeenLatestMessage: id === userId,
-                })),
+        const [conversation, message] = await prisma.$transaction(
+          async (tx) => {
+            const conversation = await tx.conversation.create({
+              data: {
+                participants: {
+                  createMany: {
+                    data: participantsIds.map((id) => ({
+                      userId: id,
+                      hasSeenLatestMessage: id === userId,
+                    })),
+                  },
+                },
               },
-            },
-          },
-          include: conversationPopulated,
-        });
+              include: conversationPopulated,
+            });
 
+            const message = await tx.message.create({
+              data: {
+                body: "Welcome to the Conversation💭!",
+                sender: {
+                  connect: { id: userId },
+                },
+                conversation: {
+                  connect: { id: conversation.id },
+                },
+              },
+            });
+
+            await tx.conversation.update({
+              where: { id: conversation.id },
+              data: {
+                latestMessageId: message.id,
+              },
+            });
+
+            return [conversation, message];
+          }
+        );
         pubsub.publish("CONVERSATION_CREATED", {
-          conversationCreated: conversation,
+          conversationCreated: {
+            ...conversation,
+            messages: [message],
+            latestMessage: message,
+          },
         });
 
         return {
@@ -81,6 +113,7 @@ const resolvers = {
         };
       } catch (error: any) {
         console.log("createConversation Error", error?.message);
+
         throw new GraphQLError("Error in creating conversation");
       }
     },
