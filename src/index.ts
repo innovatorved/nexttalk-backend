@@ -25,9 +25,14 @@ import { json } from "body-parser";
 
 import { CLIENT_URL, PORT } from "./constants";
 
+const prisma = new PrismaClient();
+
 async function main() {
   const app = express();
   app.use(cookieParser());
+
+  const pubsub = new PubSub();
+
   const httpServer = http.createServer(app);
 
   // Web Socket Server
@@ -40,9 +45,6 @@ async function main() {
     typeDefs,
     resolvers,
   });
-
-  const prisma = new PrismaClient();
-  const pubsub = new PubSub();
 
   const getSubscriptionContext = async (
     ctx: SubscriptionContext
@@ -129,4 +131,12 @@ async function main() {
   console.log(`Server is now running on http://localhost:${PORT}/graphql`);
 }
 
-main().catch((err) => console.log(err));
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon --delay 500ms src/index.ts",
     "pretify": "prettier --write ."
   },
   "repository": "https://github.com/innovatorved/nexttalk-backend.git",
