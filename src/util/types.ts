@@ -49,6 +49,18 @@ export interface ConversationCreatedSubscriptionPayload {
   conversationCreated: ConversationPopulated;
 }
 
+export interface ConversationUpdatedSubscriptionData {
+  conversationUpdated: {
+    conversation: ConversationPopulated;
+    addedUserIds: Array<string>;
+    removedUserIds: Array<string>;
+  };
+}
+
+export interface ConversationDeletedSubscriptionPayload {
+  conversationDeleted: ConversationPopulated;
+}
+
 export const participantPopulated =
   Prisma.validator<Prisma.ConversationParticipantInclude>()({
     user: {
