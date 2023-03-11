@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --delay 500ms src/index.ts",
-    "start": "ts-node dist/app/index.js",
-    "build": "tsc -p . dist",
+    "start": "node dist/index.js",
+    "build": "tsc -p .",
     "pretify": "prettier --write ."
   },
   "repository": "https://github.com/innovatorved/nexttalk-backend.git",
