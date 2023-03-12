@@ -16,11 +16,11 @@ RUN yarn install
 # Copy the rest of the application code to the container
 COPY . .
 
-# Copy .file.env.production file to the container
-COPY .file.env.production .
+# Copy .env.production file to the container
+COPY .env.production .
 
-# Read environment variables from .file.env.production file
-ENV $(cat .file.env.production | xargs)
+# Read environment variables from .env.production file
+ENV $(cat .env.production | xargs)
 ENV PORT=8080
 ENV HOST=0.0.0.0
 
