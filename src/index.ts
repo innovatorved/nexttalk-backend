@@ -23,7 +23,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { json } from "body-parser";
 
-import { CLIENT_URL, PORT } from "./constants";
+import { CLIENT_URL, PORT, HOST } from "./constants";
 
 const prisma = new PrismaClient();
 
@@ -126,7 +126,7 @@ async function main() {
 
   // Now that our HTTP server is fully set up, we can listen to it.
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: PORT }, resolve)
+    httpServer.listen({ port: PORT, host: HOST }, resolve)
   );
   console.log(`Server is now running on http://localhost:${PORT}/graphql`);
 }

@@ -1,16 +1,12 @@
-# fly.toml file generated for nexttalk-backend on 2023-03-11T17:47:36+05:30
+# fly.toml file generated for nexttalkbackend on 2023-03-11T23:35:09+05:30
 
-app = "nexttalk-backend"
+app = "nexttalkbackend"
 kill_signal = "SIGINT"
 kill_timeout = 5
 primary_region = "sin"
 processes = []
 
-[build]
-  builder = "heroku/buildpacks:20"
-
 [env]
-  PORT = "8080"
 
 [experimental]
   auto_rollback = true
