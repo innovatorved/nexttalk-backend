@@ -27,8 +27,9 @@ ENV HOST=0.0.0.0
 # Copy Prisma configuration files
 COPY prisma ./prisma/
 
-# Generate Prisma client
+# Generate Prisma client and Push schema 
 RUN npx prisma generate
+RUN npx prisma db push
 
 # Build the application
 RUN yarn build
