@@ -89,6 +89,9 @@ const resolver = {
       }
 
       try {
+        /**
+         * Create new message entity
+         */
         const newMessage = await prisma.message.create({
           data: {
             id: messageId,
@@ -100,22 +103,27 @@ const resolver = {
         });
 
         /**
-         * Find conversationParticipants
+         * Could cache this in production
          */
-        const participants = await prisma.conversationParticipant.findFirst({
+        const participant = await prisma.conversationParticipant.findFirst({
           where: {
             userId,
             conversationId,
           },
         });
-        if (!participants) {
-          throw new GraphQLError("Problem participantsConversation not exists");
-        }
 
         /**
-         * Update Conversation Entity
+         * Should always exist
          */
+        if (!participant) {
+          throw new GraphQLError("Participant does not exist");
+        }
 
+        const { id: participantId } = participant;
+
+        /**
+         * Update conversation latestMessage
+         */
         const conversation = await prisma.conversation.update({
           where: {
             id: conversationId,
@@ -125,7 +133,7 @@ const resolver = {
             participants: {
               update: {
                 where: {
-                  id: participants?.id,
+                  id: participantId,
                 },
                 data: {
                   hasSeenLatestMessage: true,
@@ -143,16 +151,23 @@ const resolver = {
               },
             },
           },
+          select: {
+            ...conversationPopulated,
+            id: true,
+            updatedAt: true,
+          },
         });
 
         pubsub.publish("MESSAGE_SEND", { messageSend: newMessage });
-        // pubsub.publish("CONVERSATION_UPDATED", {
-        //   conversationUpdated: {
-        //     conversation,
-        //   },
-        // });
+        pubsub.publish("CONVERSATION_UPDATED", {
+          conversationUpdated: {
+            conversation,
+          },
+        });
+
+        return true;
       } catch (error: any) {
-        console.log("Send MEssage Error ", error?.message);
+        console.log("Send Message Error ", error?.message);
         throw new GraphQLError("Sending Message Error" + error?.message);
       }
 

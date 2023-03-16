@@ -41,7 +41,7 @@ const resolvers = {
         });
         return conversations;
       } catch (error: any) {
-        console.log("Conversation Error", error?.message);
+        console.error("Conversation Error", error?.message);
         throw new GraphQLError(error?.message);
       }
     },
@@ -114,7 +114,7 @@ const resolvers = {
           conversationId: conversation.id,
         };
       } catch (error: any) {
-        console.log("createConversation Error", error?.message);
+        console.error("createConversation Error", error?.message);
 
         throw new GraphQLError("Error in creating conversation");
       }
