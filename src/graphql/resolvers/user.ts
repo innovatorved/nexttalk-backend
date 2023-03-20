@@ -24,6 +24,12 @@ const resolvers = {
         user: { username: myUsername },
       } = session;
 
+      //  regex to check username is empty
+      const regex = /^\s*$/;
+      if (regex.test(searchedUsername)) {
+        return [];
+      }
+
       try {
         const users = await prisma.user.findMany({
           where: {
