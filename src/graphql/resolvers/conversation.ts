@@ -163,26 +163,40 @@ const resolvers = {
       try {
         /**
          * Delete conversation and all related entities
+         * Optimize entire code into single transactiob
          */
-        const deletedConversation = await prisma.conversation.delete({
-          where: {
-            id: conversationId,
-          },
-          include: {
-            participants: true,
-          },
-        });
+        const deletedConversation = await prisma.$transaction(async (tx) => {
+          await tx.conversation.update({
+            where: {
+              id: conversationId,
+            },
+            data: {
+              latestMessageId: null,
+            },
+          });
 
-        await prisma.conversationParticipant.deleteMany({
-          where: {
-            conversationId: conversationId,
-          },
-        });
+          const deletedConversation = await tx.conversation.delete({
+            where: {
+              id: conversationId,
+            },
+            include: {
+              participants: true,
+            },
+          });
 
-        await prisma.message.deleteMany({
-          where: {
-            conversationId: conversationId,
-          },
+          await tx.conversationParticipant.deleteMany({
+            where: {
+              conversationId: conversationId,
+            },
+          });
+
+          await tx.message.deleteMany({
+            where: {
+              conversationId: conversationId,
+            },
+          });
+
+          return deletedConversation;
         });
 
         pubsub.publish("CONVERSATION_DELETED", {
