@@ -165,16 +165,17 @@ const resolvers = {
          * Delete conversation and all related entities
          * Optimize entire code into single transactiob
          */
-        const deletedConversation = await prisma.$transaction(async (tx) => {
-          await tx.conversation.update({
-            where: {
-              id: conversationId,
-            },
-            data: {
-              latestMessageId: null,
-            },
-          });
 
+        await prisma.conversation.update({
+          where: {
+            id: conversationId,
+          },
+          data: {
+            latestMessageId: null,
+          },
+        });
+
+        const deletedConversation = await prisma.$transaction(async (tx) => {
           const deletedConversation = await tx.conversation.delete({
             where: {
               id: conversationId,
