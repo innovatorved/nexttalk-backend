@@ -31,6 +31,8 @@ To run the application locally, follow these steps:
     npx prisma db push
 ```
 
+Check the [CONFIG.md](https://github.com/innovatorved/nexttalk-backend/blob/main/CONFIG.md) file before Starting the Server.
+
 5. Start the serve :
 
 For Development server change the `NODE_ENV` variable in `.env` to `development` and run the following command:
