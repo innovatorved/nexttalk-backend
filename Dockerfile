@@ -17,10 +17,9 @@ RUN yarn install
 COPY . .
 
 # Copy .env.production file to the container
-COPY .env.production .
+COPY .env.production .env
 
 # Read environment variables from .env.production file
-ENV $(cat .env.production | xargs)
 ENV PORT=8080
 ENV HOST=0.0.0.0
 
@@ -29,7 +28,6 @@ COPY prisma ./prisma/
 
 # Generate Prisma client and Push schema 
 RUN npx prisma generate
-RUN npx prisma db push
 
 # Build the application
 RUN yarn build

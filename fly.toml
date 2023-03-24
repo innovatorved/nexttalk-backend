@@ -1,6 +1,6 @@
-# fly.toml file generated for nexttalkbackend on 2023-03-11T23:35:09+05:30
+# fly.toml file generated for nexttalk on 2023-03-25T01:16:03+05:30
 
-app = "nexttalkbackend"
+app = "nexttalk"
 kill_signal = "SIGINT"
 kill_timeout = 5
 primary_region = "sin"

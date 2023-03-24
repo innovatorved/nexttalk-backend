@@ -100,6 +100,11 @@ async function main() {
     credentials: true,
   };
 
+  app.get('/', (req, res) => {
+    res.send('App is Running!')
+    return;
+  })
+
   app.use(
     "/graphql",
     cors<cors.CorsRequest>(corsOptions),
