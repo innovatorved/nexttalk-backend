@@ -100,10 +100,10 @@ async function main() {
     credentials: true,
   };
 
-  app.get('/', (req, res) => {
-    res.send('App is Running!')
+  app.get("/", (req, res) => {
+    res.send("App is Running!");
     return;
-  })
+  });
 
   app.use(
     "/graphql",
@@ -111,9 +111,14 @@ async function main() {
     json(),
     expressMiddleware(server, {
       context: async ({ req }): Promise<GraphQLContext> => {
-        if (!req.cookies["next-auth.session-token"])
+        if (
+          !req.cookies["next-auth.session-token"] &&
+          !req.cookies["__Secure-next-auth.session-token"]
+        )
           return { session: null, prisma, pubsub };
-        const sessionToken = req.cookies["next-auth.session-token"];
+        const sessionToken =
+          req.cookies["next-auth.session-token"] ||
+          req.cookies["__Secure-next-auth.session-token"];
         const session = (await prisma.session.findUnique({
           where: {
             sessionToken,
