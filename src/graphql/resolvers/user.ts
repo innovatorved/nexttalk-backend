@@ -25,7 +25,7 @@ const resolvers = {
       } = session;
 
       // regex to check username is empty or have only dots
-      const regex = /^(|\.)+$/
+      const regex = /^(|\.)+$/;
       if (regex.test(searchedUsername)) {
         return [];
       }
