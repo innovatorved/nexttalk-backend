@@ -38,7 +38,11 @@ const resolvers = {
             },
           },
           include: conversationPopulated,
+          orderBy: {
+            updatedAt: "desc",
+          },
         });
+
         return conversations;
       } catch (error: any) {
         console.error("Conversation Error", error?.message);
