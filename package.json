@@ -27,7 +27,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.11.3",
     "lodash.merge": "^4.6.2",
-    "next-auth": "^4.19.2",
+    "next-auth": "^4.20.1",
     "ts-node": "^10.9.1",
     "ws": "^8.12.1"
   },
