@@ -19,7 +19,7 @@ COPY . .
 # Copy .env.production file to the container
 COPY .env.production .env
 
-# Read environment variables from .env.production file
+# Set environment variables
 ENV PORT=8080
 ENV HOST=0.0.0.0
 
